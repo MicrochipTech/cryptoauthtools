@@ -33,6 +33,7 @@ def init_device(iface='hid', slot=0):
     if dev_type in [0, 0x20]:
         raise ValueError('Device does not support Sign/Verify operations')
     elif dev_type != cfg.devtype:
+        cfg.dev_type = dev_type
         assert atcab_release() == ATCA_SUCCESS
         time.sleep(1)
         assert atcab_init(cfg) == ATCA_SUCCESS
@@ -44,7 +45,9 @@ def init_device(iface='hid', slot=0):
     return public_key
     
 def sign_device(digest, slot):
-    # Sign message
+    """
+    Sign message using an ATECC508A or ATECC608A
+    """
     signature = bytearray(64)
     assert atcab_sign(slot, message, signature) == ATCA_SUCCESS
 
@@ -105,7 +108,7 @@ if __name__ == '__main__':
 
 
     print('Signing Public key:')
-    print(pretty_print_hex(public_key))
+    print(pretty_print_hex(public_key, indent='    '))
 
     # Generate a random message
     message = os.urandom(32)
@@ -116,28 +119,33 @@ if __name__ == '__main__':
     message = digest.finalize()
 
     print('Message Digest:')
-    print(pretty_print_hex(message))
+    print(pretty_print_hex(message, indent='    '))
     
     # Sign the message
-    print("\nSigning the Message Digest\n")
+    print("\nSigning the Message Digest")
     if 'device' == args.signer:
+        print('    Signing with device')
         signature = sign_device(message, args.key)
     else:
+        print('    Signing with host')
         signature = sign_host(message, key)
 
-    print('Signature:')
-    print(pretty_print_hex(signature))
+    print('\nSignature:')
+    print(pretty_print_hex(signature, indent='    '))
 
     # Verify the message
-    print("\nVerifing the signature\n")
+    print("\nVerifing the signature:")
     if 'device' == args.verifier:
+        print('    Verifying with device')
         verified = verify_device(message, signature, public_key)
     else:
+        print('    Verifying with host')
         verified = verify_host(message, signature, public_key)
-        
-    print('Signature is %s!' % ('valid' if verified else 'invalid'))
+
+    print('    Signature is %s!' % ('valid' if verified else 'invalid'))
     
     # Clean up
     if 'device' in [args.signer, args.verifier]:
         atcab_release()
-    
+
+    print('\nDone')

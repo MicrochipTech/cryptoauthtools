@@ -1,5 +1,4 @@
 from cryptoauthlib import *
-from cryptoauthlib.iface import *
 from common import *
 
 
@@ -22,29 +21,31 @@ def info(iface='hid'):
     # Request the Revision Number
     info = bytearray(4)
     assert atcab_info(info) == ATCA_SUCCESS
-    print('Device Part: %s\n' % get_device_name(info))
+    print('\nDevice Part:')
+    print('    ' + get_device_name(info))
 
     # Request the Serial Number
     serial_number = bytearray(9)
     assert atcab_read_serial_number(serial_number) == ATCA_SUCCESS
-    print('Serial number: %s\n' % pretty_print_hex(serial_number))
+    print('\nSerial number: ')
+    print(pretty_print_hex(serial_number, indent='    '))
 
     # Read the configuration zone
     config_zone = bytearray(128)
     assert atcab_read_config_zone(config_zone) == ATCA_SUCCESS
 
-    print('Configuration Zone:\n')
-    print(pretty_print_hex(config_zone))
+    print('\nConfiguration Zone:')
+    print(pretty_print_hex(config_zone, indent='    '))
 
     # Check the device locks
-    print('')
+    print('\nCheck Device Locks')
     is_locked = bytearray(1)
     assert atcab_is_locked(0, is_locked) == ATCA_SUCCESS
-    print('Config Zone is %s\n' % ('locked' if is_locked[0] else 'unlocked'))
-    
+    print('    Config Zone is %s' % ('locked' if is_locked[0] else 'unlocked'))
+
     assert atcab_is_locked(1, is_locked) == ATCA_SUCCESS
-    print('Data Zone is %s\n' % ('locked' if is_locked[0] else 'unlocked'))
-        
+    print('    Data Zone is %s' % ('locked' if is_locked[0] else 'unlocked'))
+
     # Free the library
     atcab_release()
 
@@ -54,3 +55,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     info(args.iface)
+    print('\nDone')

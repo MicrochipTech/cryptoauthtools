@@ -47,11 +47,11 @@ def setup_example_runner(module):
     return parser
 
 
-def pretty_print_hex(a, l=16):
+def pretty_print_hex(a, l=16, indent=''):
     s = ''
     a = bytearray(a)
     for x in range(0, len(a), l):
-        s += ''.join(['%02X ' % y for y in a[x:x+l]]) + '\n'
+        s += indent + ''.join(['%02X ' % y for y in a[x:x+l]]) + '\n'
     return s
 
     
