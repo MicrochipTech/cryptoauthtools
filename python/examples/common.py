@@ -3,6 +3,10 @@ import argparse
 import os
 import base64
 
+# Maps common name to the specific name used internally
+atca_names_map = {'i2c': 'i2c', 'hid': 'kithid', 'sha': 'sha204', 'ecc': 'eccx08'}
+
+
 def get_device_name(revision):
     """
     Returns the device name based on the info byte array values returned by atcab_info
@@ -43,6 +47,7 @@ def setup_example_runner(module):
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     
     parser.add_argument('-i', '--iface', default='hid', choices=['i2c', 'hid'], help='Interface type (default: hid)')
+    parser.add_argument('-d', '--device', default='ecc', choices=['ecc', 'sha'], help='Device type (default: ecc)')
     
     return parser
 

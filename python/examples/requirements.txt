@@ -1,2 +1,2 @@
 cryptoauthlib
-cryptography
+cryptography >= 2.3
