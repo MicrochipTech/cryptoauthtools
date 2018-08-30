@@ -50,6 +50,10 @@ def read_write(iface='hid', device='ecc'):
     # Get the target default config
     cfg = eval('cfg_at{}a_{}_default()'.format(atca_names_map.get(device), atca_names_map.get(iface)))
 
+    # Basic Raspberry Pi I2C check
+    if 'i2c' == iface and check_if_rpi():
+        cfg.cfg.atcai2c.bus = 1
+
     # Initialize the stack
     assert atcab_init(cfg) == ATCA_SUCCESS
 

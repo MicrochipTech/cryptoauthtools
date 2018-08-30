@@ -45,10 +45,10 @@ def setup_example_runner(module):
 
     parser = argparse.ArgumentParser(description=details, 
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    
+
     parser.add_argument('-i', '--iface', default='hid', choices=['i2c', 'hid'], help='Interface type (default: hid)')
     parser.add_argument('-d', '--device', default='ecc', choices=['ecc', 'sha'], help='Device type (default: ecc)')
-    
+
     return parser
 
 
@@ -59,7 +59,7 @@ def pretty_print_hex(a, l=16, indent=''):
         s += indent + ''.join(['%02X ' % y for y in a[x:x+l]]) + '\n'
     return s
 
-    
+
 def convert_ec_pub_to_pem(raw_pub_key):
     """
     Convert to the key to PEM format. Expects bytes
@@ -67,4 +67,18 @@ def convert_ec_pub_to_pem(raw_pub_key):
     public_key_pem = bytearray.fromhex('3059301306072A8648CE3D020106082A8648CE3D03010703420004') + raw_pub_key
     public_key_pem = '-----BEGIN PUBLIC KEY-----\n' + base64.b64encode(public_key_pem).decode('ascii') + '\n-----END PUBLIC KEY-----'
     return public_key_pem
-    
+
+
+def check_if_rpi():
+    """
+    Does a basic check to see if the script is running on a Raspberry Pi
+    """
+    is_rpi = False
+    try:
+        with open('/sys/firmware/devicetree/base/model', 'r') as f:
+            if f.readline().startswith('Raspberry'):
+                is_rpi = True
+    except FileNotFoundError:
+        is_rpi = False
+
+    return is_rpi
