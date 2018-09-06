@@ -73,7 +73,7 @@ def init_device(iface='hid', slot=0, **kwargs):
     
     return public_key
     
-def sign_device(digest, slot):
+def sign_device(message, slot):
     """
     Sign message using an ATECC508A or ATECC608A
     """
