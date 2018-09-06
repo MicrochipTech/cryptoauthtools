@@ -25,7 +25,7 @@ from cryptoauthlib import *
 from common import *
 
 
-def info(iface='hid', device='ecc'):
+def info(iface='hid', device='ecc', **kwargs):
     ATCA_SUCCESS = 0x00
 
     # Loading cryptoauthlib(python specific)
@@ -34,6 +34,11 @@ def info(iface='hid', device='ecc'):
     # Get the target default config
     cfg = eval('cfg_at{}a_{}_default()'.format(atca_names_map.get(device), atca_names_map.get(iface)))
 
+    # Set interface parameters
+    if kwargs is not None:
+        for k, v in kwargs.items():
+            setattr(cfg.cfg, 'atca{}.{}'.format(iface, k), int(v, 16))
+
     # Basic Raspberry Pi I2C check
     if 'i2c' == iface and check_if_rpi():
         cfg.cfg.atcai2c.bus = 1
@@ -41,7 +46,7 @@ def info(iface='hid', device='ecc'):
     # Initialize the stack
     assert atcab_init(cfg) == ATCA_SUCCESS
     print('')
-    
+
     # Request the Revision Number
     info = bytearray(4)
     assert atcab_info(info) == ATCA_SUCCESS
@@ -78,5 +83,5 @@ if __name__ == '__main__':
     parser = setup_example_runner(__file__)
     args = parser.parse_args()
 
-    info(args.iface, args.device)
+    info(args.iface, args.device, **parse_interface_params(args.params))
     print('\nDone')

@@ -1,4 +1,4 @@
-# Python Crytpoauthlib Examples
+# Python Cryptoauthlib Examples
 
 This directory contains a number of examples for using the python cryptoauthlib
 module
