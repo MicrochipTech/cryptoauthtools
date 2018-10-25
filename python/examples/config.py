@@ -56,12 +56,7 @@ _configs = {'ATSHA204A': _atsha204_config,
             'ATECC508A': _atecc508_config,
             'ATECC608A': _atecc608_config }
 
-# Safe input if using python 2
-try: input = raw_input
-except NameError: pass
-
-
-def configure_device(iface='hid', device='ecc', i2c_addr=None, keygen=True, **kwargs):
+def configure_device(iface='hid', device='ecc', i2c_addr=None, keygen=True):
     ATCA_SUCCESS = 0x00
 
     # Loading cryptoauthlib(python specific)
@@ -69,11 +64,6 @@ def configure_device(iface='hid', device='ecc', i2c_addr=None, keygen=True, **kw
 
     # Get the target default config
     cfg = eval('cfg_at{}a_{}_default()'.format(atca_names_map.get(device), atca_names_map.get(iface)))
-
-    # Set interface parameters
-    if kwargs is not None:
-        for k, v in kwargs.items():
-            setattr(cfg.cfg, 'atca{}.{}'.format(iface, k), int(v, 16))
 
     # Basic Raspberry Pi I2C check
     if 'i2c' == iface and check_if_rpi():
@@ -104,12 +94,12 @@ def configure_device(iface='hid', device='ecc', i2c_addr=None, keygen=True, **kw
 
     # Check the zone locks
     print('\nReading the Lock Status')
-    response = bytearray(4)
-    assert ATCA_SUCCESS == atcab_is_locked(0, response)
-    config_zone_lock = True if 0 != response[0] else False
+    is_locked = AtcaReference(False)
+    assert ATCA_SUCCESS == atcab_is_locked(0, is_locked)
+    config_zone_lock = bool(is_locked.value)
 
-    assert ATCA_SUCCESS == atcab_is_locked(1, response)
-    data_zone_lock = True if 0 != response[0] else False
+    assert ATCA_SUCCESS == atcab_is_locked(1, is_locked)
+    data_zone_lock = bool(is_locked.value)
 
     print('    Config Zone: {}'.format('Locked' if config_zone_lock else 'Unlocked'))
     print('    Data Zone: {}'.format('Locked' if data_zone_lock else 'Unlocked'))
@@ -126,7 +116,7 @@ def configure_device(iface='hid', device='ecc', i2c_addr=None, keygen=True, **kw
             print('\n    The AT88CK590 Kit does not support changing the I2C addresses of devices.')
             print('    If you are not using an AT88CK590 kit you may continue without errors')
             print('    otherwise exit and specify a compatible (0xC0) address.')
-            if 'Y' != input('    Continue (Y/n): '):
+            if 'Y' != input('    Continue (Y/n)'):
                 exit(0)
             print('    New Address: {:02X}'.format(i2c_addr))
 
@@ -207,5 +197,5 @@ if __name__ == '__main__':
         args.i2c = int(args.i2c, 16)
 
     print('\nConfiguring the device with an example configuration')
-    configure_device(args.iface, args.device, args.i2c, args.gen, **parse_interface_params(args.params))
+    configure_device(args.iface, args.device, args.i2c, args.gen)
     print('\nDevice Successfully Configured')

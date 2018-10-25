@@ -40,7 +40,7 @@ read_write_config = {
 }
 
 
-def read_write(iface='hid', device='ecc', **kwargs):
+def read_write(iface='hid', device='ecc'):
     IO_key_slot = 4
     ATCA_SUCCESS = 0x00
 
@@ -49,11 +49,6 @@ def read_write(iface='hid', device='ecc', **kwargs):
 
     # Get the target default config
     cfg = eval('cfg_at{}a_{}_default()'.format(atca_names_map.get(device), atca_names_map.get(iface)))
-
-    # Set interface parameters
-    if kwargs is not None:
-        for k, v in kwargs.items():
-            setattr(cfg.cfg, 'atca{}.{}'.format(iface, k), int(v, 16))
 
     # Basic Raspberry Pi I2C check
     if 'i2c' == iface and check_if_rpi():
@@ -139,5 +134,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     print('\nBasic Read/Write Example')
-    read_write(args.iface, args.device, **parse_interface_params(args.params))
+    read_write(args.iface, args.device)
     print('\nDone')

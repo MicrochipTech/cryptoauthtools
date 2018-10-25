@@ -1,4 +1,4 @@
-# Python Cryptoauthlib Examples
+# Python CryptoAuthLib Examples
 
 This directory contains a number of examples for using the python cryptoauthlib
 module
@@ -61,5 +61,5 @@ Microchip cryptoauthlib product page:
 
 ## Supported hardware
 - [AT88CK101](http://www.microchip.com/DevelopmentTools/ProductDetails/AT88CK101SK-MAH-XPRO)
-- [CryptoAuth-XSTK]()
+- [CryptoAuthentication Starter Kit (DM320109)](https://www.microchip.com/developmenttools/ProductDetails/DM320109)
 - ATECC508A, ATECC608A, ATSHA204A device directly connected via I2C (Linux Only)

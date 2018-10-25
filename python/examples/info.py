@@ -25,7 +25,7 @@ from cryptoauthlib import *
 from common import *
 
 
-def info(iface='hid', device='ecc', **kwargs):
+def info(iface='hid', device='ecc'):
     ATCA_SUCCESS = 0x00
 
     # Loading cryptoauthlib(python specific)
@@ -34,11 +34,6 @@ def info(iface='hid', device='ecc', **kwargs):
     # Get the target default config
     cfg = eval('cfg_at{}a_{}_default()'.format(atca_names_map.get(device), atca_names_map.get(iface)))
 
-    # Set interface parameters
-    if kwargs is not None:
-        for k, v in kwargs.items():
-            setattr(cfg.cfg, 'atca{}.{}'.format(iface, k), int(v, 16))
-
     # Basic Raspberry Pi I2C check
     if 'i2c' == iface and check_if_rpi():
         cfg.cfg.atcai2c.bus = 1
@@ -46,7 +41,7 @@ def info(iface='hid', device='ecc', **kwargs):
     # Initialize the stack
     assert atcab_init(cfg) == ATCA_SUCCESS
     print('')
-
+    
     # Request the Revision Number
     info = bytearray(4)
     assert atcab_info(info) == ATCA_SUCCESS
@@ -68,12 +63,12 @@ def info(iface='hid', device='ecc', **kwargs):
 
     # Check the device locks
     print('\nCheck Device Locks')
-    is_locked = bytearray(1)
+    is_locked = AtcaReference(False)
     assert atcab_is_locked(0, is_locked) == ATCA_SUCCESS
-    print('    Config Zone is %s' % ('locked' if is_locked[0] else 'unlocked'))
+    print('    Config Zone is %s' % ('locked' if is_locked.value else 'unlocked'))
 
     assert atcab_is_locked(1, is_locked) == ATCA_SUCCESS
-    print('    Data Zone is %s' % ('locked' if is_locked[0] else 'unlocked'))
+    print('    Data Zone is %s' % ('locked' if is_locked.value else 'unlocked'))
 
     # Free the library
     atcab_release()
@@ -83,5 +78,5 @@ if __name__ == '__main__':
     parser = setup_example_runner(__file__)
     args = parser.parse_args()
 
-    info(args.iface, args.device, **parse_interface_params(args.params))
+    info(args.iface, args.device)
     print('\nDone')

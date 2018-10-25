@@ -2,15 +2,9 @@
 import argparse
 import os
 import base64
-import sys
 
 # Maps common name to the specific name used internally
 atca_names_map = {'i2c': 'i2c', 'hid': 'kithid', 'sha': 'sha204', 'ecc': 'eccx08'}
-
-try:
-    FileNotFoundError
-except NameError:
-    FileNotFoundError = IOError
 
 
 def get_device_name(revision):
@@ -54,22 +48,11 @@ def setup_example_runner(module):
 
     parser.add_argument('-i', '--iface', default='hid', choices=['i2c', 'hid'], help='Interface type (default: hid)')
     parser.add_argument('-d', '--device', default='ecc', choices=['ecc', 'sha'], help='Device type (default: ecc)')
-    parser.add_argument('-p', '--params', nargs='*', help='Interface Parameters in the form key=value')
 
     return parser
 
 
-def parse_interface_params(list):
-    """
-    Parse a variable list of key=value args into a dictionary suitable for kwarg usage
-    """
-    return {} if list is None else dict([s.split('=') for s in list])
-
-
 def pretty_print_hex(a, l=16, indent=''):
-    """
-    Format a list/bytes/bytearray object into a formatted ascii hex string
-    """
     s = ''
     a = bytearray(a)
     for x in range(0, len(a), l):

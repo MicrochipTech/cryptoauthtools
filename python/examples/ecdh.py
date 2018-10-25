@@ -29,7 +29,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 import time
 
 
-def ECDH(slot, iface='hid', **kwargs):
+def ECDH(slot, iface='hid'):
     ATCA_SUCCESS = 0x00
 
     # Loading cryptoauthlib(python specific)
@@ -37,11 +37,6 @@ def ECDH(slot, iface='hid', **kwargs):
 
     # Get the target default config
     cfg = eval('cfg_ateccx08a_{}_default()'.format(atca_names_map.get(iface)))
-
-    # Set interface parameters
-    if kwargs is not None:
-        for k, v in kwargs.items():
-            setattr(cfg.cfg, 'atca{}.{}'.format(iface, k), int(v, 16))
 
     # Basic Raspberry Pi I2C check
     if 'i2c' == iface and check_if_rpi():
@@ -122,5 +117,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     print('\nPerforming ECDH operations in the clear - see datasheet for encryption details')
-    ECDH(args.slot, args.iface, **parse_interface_params(args.params))
+    ECDH(args.slot, args.iface)
     print('\nDone')

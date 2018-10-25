@@ -16,10 +16,3 @@ Microchip cryptoauthlib product page:
 ```
     pip install cryptoauthlib
 ```
-
-### Upgrade
-Periodic updates will be released to cryptoauthlib. It is encourages that when these updates are
-made that you upgrade your install with the latest version
-```
-    pip install --upgrade cryptoauthlib
-```
