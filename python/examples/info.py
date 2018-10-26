@@ -25,7 +25,7 @@ from cryptoauthlib import *
 from common import *
 
 
-def info(iface='hid', device='ecc'):
+def info(iface='hid', device='ecc', **kwargs):
     ATCA_SUCCESS = 0x00
 
     # Loading cryptoauthlib(python specific)
@@ -34,6 +34,12 @@ def info(iface='hid', device='ecc'):
     # Get the target default config
     cfg = eval('cfg_at{}a_{}_default()'.format(atca_names_map.get(device), atca_names_map.get(iface)))
 
+    # Set interface parameters
+    if kwargs is not None:
+        for k, v in kwargs.items():
+            icfg = getattr(cfg.cfg, 'atca{}'.format(iface))
+            setattr(icfg, k, int(v, 16))
+
     # Basic Raspberry Pi I2C check
     if 'i2c' == iface and check_if_rpi():
         cfg.cfg.atcai2c.bus = 1
@@ -41,7 +47,7 @@ def info(iface='hid', device='ecc'):
     # Initialize the stack
     assert atcab_init(cfg) == ATCA_SUCCESS
     print('')
-    
+
     # Request the Revision Number
     info = bytearray(4)
     assert atcab_info(info) == ATCA_SUCCESS
@@ -65,10 +71,24 @@ def info(iface='hid', device='ecc'):
     print('\nCheck Device Locks')
     is_locked = AtcaReference(False)
     assert atcab_is_locked(0, is_locked) == ATCA_SUCCESS
-    print('    Config Zone is %s' % ('locked' if is_locked.value else 'unlocked'))
+    config_zone_locked = bool(is_locked.value)
+    print('    Config Zone is %s' % ('locked' if config_zone_locked else 'unlocked'))
 
     assert atcab_is_locked(1, is_locked) == ATCA_SUCCESS
-    print('    Data Zone is %s' % ('locked' if is_locked.value else 'unlocked'))
+    data_zone_locked = bool(is_locked.value)
+    print('    Data Zone is %s' % ('locked' if data_zone_locked else 'unlocked'))
+
+    #Load the public key
+    if data_zone_locked:
+        print('\nLoading Public key\n')
+        public_key = bytearray(64)
+        assert atcab_get_pubkey(0, public_key) == ATCA_SUCCESS
+
+        public_key =  bytearray.fromhex('3059301306072A8648CE3D020106082A8648CE3D03010703420004') + bytes(public_key)
+        public_key = base64.b64encode(public_key).decode('ascii')
+        public_key = ''.join(public_key[i:i+64] + '\n' for i in range(0,len(public_key),64))
+        public_key = '-----BEGIN PUBLIC KEY-----\n' + public_key + '-----END PUBLIC KEY-----'
+        print(public_key)
 
     # Free the library
     atcab_release()
@@ -78,5 +98,5 @@ if __name__ == '__main__':
     parser = setup_example_runner(__file__)
     args = parser.parse_args()
 
-    info(args.iface, args.device)
+    info(args.iface, args.device, **parse_interface_params(args.params))
     print('\nDone')

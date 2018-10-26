@@ -35,12 +35,18 @@ import time
 ATCA_SUCCESS = 0x00
 
 
-def init_device(iface='hid', slot=0):
+def init_device(iface='hid', slot=0, **kwargs):
     # Loading cryptoauthlib(python specific)
     load_cryptoauthlib()
 
     # Get the target default config
     cfg = eval('cfg_ateccx08a_{}_default()'.format(atca_names_map.get(iface)))
+
+    # Set interface parameters
+    if kwargs is not None:
+        for k, v in kwargs.items():
+            icfg = getattr(cfg.cfg, 'atca{}'.format(iface))
+            setattr(icfg, k, int(v, 16))
 
     # Basic Raspberry Pi I2C check
     if 'i2c' == iface and check_if_rpi():
@@ -74,7 +80,7 @@ def sign_device(digest, slot):
     Sign message using an ATECC508A or ATECC608A
     """
     signature = bytearray(64)
-    assert atcab_sign(slot, message, signature) == ATCA_SUCCESS
+    assert atcab_sign(slot, digest, signature) == ATCA_SUCCESS
 
     return signature
 
@@ -124,8 +130,8 @@ if __name__ == '__main__':
     print('\nSign/Verify Example\n')
 
     if 'device' in [args.signer, args.verifier]:
-        public_key = init_device(args.iface, args.key)
-        
+        public_key = init_device(args.iface, args.key, **parse_interface_params(args.params))
+
     if 'host' == args.signer:
         key = ec.generate_private_key(ec.SECP256R1(), default_backend())
         public_key = key.public_key().public_numbers().encode_point()[1:]
