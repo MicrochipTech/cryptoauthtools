@@ -176,7 +176,8 @@ def configure_device(iface='hid', device='ecc', i2c_addr=None, keygen=True, **kw
     # Generate new keys
     if keygen or not data_zone_lock:
         if 'ATSHA204A' == dev_name:
-            print('\nProgramming Keys')
+#            print('\nProgramming Keys')
+             print('\nProgram SHA204 Keys manually')
         else:
             print('\nGenerating New Keys')
             pubkey = bytearray(64)
@@ -184,15 +185,15 @@ def configure_device(iface='hid', device='ecc', i2c_addr=None, keygen=True, **kw
             print('    Key 0 Success:')
             print(pretty_print_hex(pubkey, indent='    '))
 
-            assert ATCA_SUCCESS == atcab_genkey(0, pubkey)
+            assert ATCA_SUCCESS == atcab_genkey(2, pubkey)
             print('    Key 2 Success:')
             print(pretty_print_hex(pubkey, indent='    '))
 
-            assert ATCA_SUCCESS == atcab_genkey(0, pubkey)
+            assert ATCA_SUCCESS == atcab_genkey(3, pubkey)
             print('    Key 3 Success:')
             print(pretty_print_hex(pubkey, indent='    '))
 
-            assert ATCA_SUCCESS == atcab_genkey(0, pubkey)
+            assert ATCA_SUCCESS == atcab_genkey(7, pubkey)
             print('    Key 7 Success:')
             print(pretty_print_hex(pubkey, indent='    '))
 
