@@ -78,17 +78,12 @@ def info(iface='hid', device='ecc', **kwargs):
     data_zone_locked = bool(is_locked.value)
     print('    Data Zone is %s' % ('locked' if data_zone_locked else 'unlocked'))
 
-    #Load the public key
+    # Load the public key
     if data_zone_locked:
         print('\nLoading Public key\n')
         public_key = bytearray(64)
         assert atcab_get_pubkey(0, public_key) == ATCA_SUCCESS
-
-        public_key =  bytearray.fromhex('3059301306072A8648CE3D020106082A8648CE3D03010703420004') + bytes(public_key)
-        public_key = base64.b64encode(public_key).decode('ascii')
-        public_key = ''.join(public_key[i:i+64] + '\n' for i in range(0,len(public_key),64))
-        public_key = '-----BEGIN PUBLIC KEY-----\n' + public_key + '-----END PUBLIC KEY-----'
-        print(public_key)
+        print(convert_ec_pub_to_pem(public_key))
 
     # Free the library
     atcab_release()

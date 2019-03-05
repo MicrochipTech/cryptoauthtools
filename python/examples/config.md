@@ -2,7 +2,7 @@ Example Configurations
 ===============================================================================
 Before a CryptoAuthentication device may be used it's configuration must be set
 for the intended use case(s). Configurations can be quite complex and need to
-be carefully created and analyized for security gaps that could be introduced
+be carefully created and analyzed for security gaps that could be introduced
 by an unintended configuration interaction. When developing a new configuration
 please consult both the datasheet and your FAE.
 
@@ -16,9 +16,10 @@ ATECC508A Configuraiton
 be rewritten without prior knowledge of a secret.
 
 ATECC608A Configuration:
-* All the above from the ATECC508A
-* Slot 4 is additionally used as the io protection key for reading ECDH 
-premaster secret and KDF material from tempkey.
+* Slot 6 allows unencrypted writes which means the io protection key can
+be rewritten without prior knowledge of a secret.
+* Slot 6 is additionally used as the io protection key for reading ECDH 
+premaster secret and KDF material.
 
 ATSHA204A Configuration:
 * Slots may be freely written without prior knowledge of the slot contents

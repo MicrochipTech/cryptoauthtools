@@ -10,9 +10,10 @@ Install the python requirements via the command:
 ```
 
 ## Running the examples
-The examples are intended to be simple and straightforward to illustrate the basic concepts.
-To get help on any example you can consult the associated document (e.g. [info.py](info.py) has an accompanying 
-[info.md](info.md) document) or from the command line:
+The examples are intended to be simple and straightforward to illustrate the
+basic concepts. To get help on any example you can consult the associated
+document (e.g. [info.py](info.py) has an accompanying [info.md](info.md)
+document) or from the command line:
 ```
     info.py -h
 ```
@@ -46,15 +47,23 @@ optional arguments:
 
 ## list of Examples
 
+- [config.py](config.py): Configure and provision a blank device for these
+  examples. See [config.md](config.md)
 - [info.py](info.py): Read device info. See [info.md](info.md)
+- [key_attestation.py](key_attestation.md): Demonstrate a key attestation flow
+  for proving possesion of an asymmetric key.
+  See [key_attestation.md](key_attestation.md)
 - [ecdh.py](ecdh.py): Perform ECDH calculation. See [ecdh.md](ecdh.md)
-- [sign_verify.py](sign_verify.py): Perform ECDSA signature and verification. See [sign_verify.md](sign_verify.md)
-- [read_write.py](read_write.py): Perform encrypted writes and successive reads from a slot. See [read_write.md](read_write.md)
+- [sign_verify.py](sign_verify.py): Perform ECDSA signature and verification.
+  See [sign_verify.md](sign_verify.md)
+- [read_write.py](read_write.py): Perform encrypted writes and successive reads
+  from a slot. See [read_write.md](read_write.md)
 
 ## What does the Python CryptoAuthLib package do?
-CryptoAuthLib module gives access to most functions available as part of standard cryptoauthlib
-(which is written in 'C'). These python functions for the most part are very similar to 'C'
-functions. The module in short acts as a wrapper over the 'C' cryptoauth library functions.
+CryptoAuthLib module gives access to most functions available as part of
+standard cryptoauthlib (which is written in 'C'). These python functions for
+the most part are very similar to 'C' functions. The module in short acts as a
+wrapper over the 'C' cryptoauth library functions.
 
 Microchip cryptoauthlib product page: 
 [Link]( http://www.microchip.com/SWLibraryWeb/product.aspx?product=CryptoAuthLib)

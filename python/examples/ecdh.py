@@ -25,6 +25,8 @@ from cryptoauthlib import *
 from common import *
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+from cryptography.utils import int_from_bytes
 
 import time
 
@@ -55,10 +57,11 @@ def ECDH(slot, iface='hid', **kwargs):
     # Get the device type from the info command
     info = bytearray(4)
     assert atcab_info(info) == ATCA_SUCCESS
-    dev_type = get_device_type_id(get_device_name(info))
+    dev_name = get_device_name(info)
+    dev_type = get_device_type_id(dev_name)
 
     # Check device type
-    if dev_type in [0, 0x20]:
+    if dev_type in ['ATSHA204A', 'ATECC108A']:
         raise ValueError('Device does not support ECDH operations')
     elif dev_type != cfg.devtype:
         cfg.dev_type = dev_type
@@ -70,11 +73,11 @@ def ECDH(slot, iface='hid', **kwargs):
     host_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
 
     # Convert host's public key into ATECCx08 format
-    host_pub = host_key.public_key().public_numbers().encode_point()[1:]
+    host_pub = host_key.public_key().public_bytes(encoding=Encoding.X962, format=PublicFormat.UncompressedPoint)[1:]
 
     # Display the host's public key
     print("\nHost Public Key:")
-    print(pretty_print_hex(host_pub, indent='    '))
+    print(convert_ec_pub_to_pem(host_pub))
 
     # Buffers for device public key and shared secret
     device_pub = bytearray(64)
@@ -92,10 +95,14 @@ def ECDH(slot, iface='hid', **kwargs):
 
     # Display the device's public key
     print("\nDevice public key:")
-    print(pretty_print_hex(device_pub, indent='    '))
+    print(convert_ec_pub_to_pem(device_pub))
 
     # Convert device public key to a cryptography public key object
-    device_pub = ec.EllipticCurvePublicNumbers.from_encoded_point(ec.SECP256R1(), b'\04' + device_pub).public_key(default_backend())
+    device_pub = ec.EllipticCurvePublicNumbers(
+        curve=ec.SECP256R1(),
+        x=int_from_bytes(device_pub[0:32], byteorder='big'),
+        y=int_from_bytes(device_pub[32:64], byteorder='big'),
+    ).public_key(default_backend())
 
     # Perform the host side ECDH computation
     host_shared = host_key.exchange(ec.ECDH(), device_pub)

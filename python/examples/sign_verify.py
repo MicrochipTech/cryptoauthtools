@@ -29,6 +29,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec, utils
 from cryptography.exceptions import InvalidSignature
 from cryptography.utils import int_from_bytes, int_to_bytes
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
 import time
 
@@ -107,13 +108,15 @@ def verify_host(digest, signature, public_key_data):
     Verify a signature using the host software
     """
     try:
-        public_key_data = b'\x04' + public_key_data
-
         r = int_from_bytes(signature[0:32], byteorder='big', signed=False)
         s = int_from_bytes(signature[32:64], byteorder='big', signed=False)
         sig = utils.encode_dss_signature(r, s)
-    
-        public_key = ec.EllipticCurvePublicNumbers.from_encoded_point(ec.SECP256R1(), public_key_data).public_key(default_backend())
+
+        public_key = ec.EllipticCurvePublicNumbers(
+            curve=ec.SECP256R1(),
+            x=int_from_bytes(public_key_data[0:32], byteorder='big'),
+            y=int_from_bytes(public_key_data[32:64], byteorder='big'),
+        ).public_key(default_backend())
         public_key.verify(sig, digest, ec.ECDSA(utils.Prehashed(hashes.SHA256())))
         return True
     except InvalidSignature:
@@ -134,11 +137,11 @@ if __name__ == '__main__':
 
     if 'host' == args.signer:
         key = ec.generate_private_key(ec.SECP256R1(), default_backend())
-        public_key = key.public_key().public_numbers().encode_point()[1:]
+        public_key = key.public_key().public_bytes(encoding=Encoding.X962, format=PublicFormat.UncompressedPoint)[1:]
 
 
     print('Signing Public key:')
-    print(pretty_print_hex(public_key, indent='    '))
+    print(convert_ec_pub_to_pem(public_key))
 
     # Generate a random message
     message = os.urandom(32)

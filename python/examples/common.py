@@ -70,19 +70,24 @@ def pretty_print_hex(a, l=16, indent=''):
     """
     Format a list/bytes/bytearray object into a formatted ascii hex string
     """
-    s = ''
+    lines = []
     a = bytearray(a)
     for x in range(0, len(a), l):
-        s += indent + ''.join(['%02X ' % y for y in a[x:x+l]]) + '\n'
-    return s
+        lines.append(indent + ' '.join(['{:02X}'.format(y) for y in a[x:x+l]]))
+    return '\n'.join(lines)
 
 
 def convert_ec_pub_to_pem(raw_pub_key):
     """
     Convert to the key to PEM format. Expects bytes
     """
-    public_key_pem = bytearray.fromhex('3059301306072A8648CE3D020106082A8648CE3D03010703420004') + raw_pub_key
-    public_key_pem = '-----BEGIN PUBLIC KEY-----\n' + base64.b64encode(public_key_pem).decode('ascii') + '\n-----END PUBLIC KEY-----'
+    public_key_der = bytearray.fromhex('3059301306072A8648CE3D020106082A8648CE3D03010703420004') + raw_pub_key
+    public_key_b64 = base64.b64encode(public_key_der).decode('ascii')
+    public_key_pem = (
+        '-----BEGIN PUBLIC KEY-----\n'
+        + '\n'.join(public_key_b64[i:i + 64] for i in range(0, len(public_key_b64), 64)) + '\n'
+        + '-----END PUBLIC KEY-----'
+    )
     return public_key_pem
 
 

@@ -22,6 +22,7 @@ Slot Read/Write Example to demonstrate encrypted and unencrypted transfers
 # THIS SOFTWARE.
 
 from cryptoauthlib import *
+from cryptoauthlib.device import *
 from common import *
 import time
 
@@ -36,12 +37,11 @@ ENC_KEY = bytearray([
 read_write_config = {
     'ATSHA204A': {'clear': 8, 'encrypted': 3},
     'ATECC508A': {'clear': 8, 'encrypted': 9},
-    'ATECC608A': {'clear': 8, 'encrypted': 9}
+    'ATECC608A': {'clear': 8, 'encrypted': 5}
 }
 
 
 def read_write(iface='hid', device='ecc', **kwargs):
-    IO_key_slot = 4
     ATCA_SUCCESS = 0x00
 
     # Loading cryptoauthlib(python specific)
@@ -80,6 +80,23 @@ def read_write(iface='hid', device='ecc', **kwargs):
     if slots is None:
         raise ValueError('No slot configuration for {}'.format(dev_name))
 
+    # Read the config to find some setup values
+    config_data = bytearray(128)
+    assert ATCA_SUCCESS == atcab_read_config_zone(config_data)
+    if dev_name == 'ATSHA204A':
+        config = Atsha204aConfig.from_buffer(config_data[:88])
+    elif dev_name == 'ATECC508A':
+        config = Atecc508aConfig.from_buffer(config_data)
+    elif dev_name == 'ATECC608A':
+        config = Atecc608aConfig.from_buffer(config_data)
+    else:
+        raise ValueError('Unsupported device {}'.format(dev_name))
+
+
+
+    # Find the write key slot for the encrypted write slot
+    write_key_slot = config.SlotConfig[slots['encrypted']].WriteKey
+
     write_data = bytearray(32)
     read_data = bytearray(32)
 
@@ -107,7 +124,7 @@ def read_write(iface='hid', device='ecc', **kwargs):
 
     # Writing IO protection key. This key is used as IO encryption key.
     print('\nWriting IO Protection Secret')
-    assert atcab_write_zone(2, IO_key_slot, 0, 0, ENC_KEY, 32) == ATCA_SUCCESS
+    assert atcab_write_zone(2, write_key_slot, 0, 0, ENC_KEY, 32) == ATCA_SUCCESS
 
     print('\nGeneraing data using RAND command')
     assert atcab_random(write_data) == ATCA_SUCCESS
@@ -117,13 +134,13 @@ def read_write(iface='hid', device='ecc', **kwargs):
     # Writing a key to slot '1' through encrypted write
     print('\nEncrypted Write Command:')
     print('    Writing data to slot {}'.format(slots['encrypted']))
-    assert atcab_write_enc(slots['encrypted'], 0, write_data, ENC_KEY, IO_key_slot) == ATCA_SUCCESS
+    assert atcab_write_enc(slots['encrypted'], 0, write_data, ENC_KEY, write_key_slot) == ATCA_SUCCESS
     print('    Write Success')
 
     # Reading the key in plain text from slot '10'
     print('\nEncrypted Read Command:')
     print('    Reading data stored in slot {}'.format(slots['encrypted']))
-    assert atcab_read_enc(slots['encrypted'], 0, read_data, ENC_KEY, IO_key_slot) == ATCA_SUCCESS
+    assert atcab_read_enc(slots['encrypted'], 0, read_data, ENC_KEY, write_key_slot) == ATCA_SUCCESS
     print('    Read data:')
     print(pretty_print_hex(read_data, indent='        '))
 

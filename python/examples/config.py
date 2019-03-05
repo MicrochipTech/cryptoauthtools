@@ -22,8 +22,11 @@ Basic Configuration Common Use Cases
 # THIS SOFTWARE.
 
 from cryptoauthlib import *
+from cryptoauthlib.device import *
 from common import *
 import time
+import ctypes
+import base64
 
 _atsha204_config = bytearray.fromhex(
     'C8 00 55 00 8F 80 80 A1 82 E0 C4 F4 84 00 A0 85'
@@ -44,13 +47,13 @@ _atecc508_config = bytearray.fromhex(
 
 # Example configuration for ATECC608A minus the first 16 bytes which are fixed by the factory
 _atecc608_config = bytearray.fromhex(
-    'B0 00 55 01 8F 20 C4 44  87 20 87 20 8F 0F C4 36'
-    '9F 0F 82 20 0F 0F C4 44  0F 0F 0F 0F 0F 0F 0F 0F'
-    '0F 0F 0F 0F FF FF FF FF  00 00 00 00 FF FF FF FF'
-    '00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00'
-    '00 00 00 00 00 00 55 55  FF FF 06 40 00 00 00 00'
-    '33 00 1C 00 13 00 13 00  7C 00 1C 00 3C 00 33 00'
-    '3C 00 3C 00 3C 00 30 00  3C 00 3C 00 3C 00 30 00')
+    '6A 00 00 01 85 00 82 00  85 20 85 20 85 20 C6 46'
+    '8F 0F 9F 8F 0F 0F 8F 0F  0F 0F 0F 0F 0F 0F 0F 0F'
+    '0D 1F 0F 0F FF FF FF FF  00 00 00 00 FF FF FF FF'
+    '00 00 00 00 00 00 03 F7  00 69 76 00 00 00 00 00'
+    '00 00 00 00 00 00 55 55  FF FF 0E 60 00 00 00 00'
+    '53 00 53 00 73 00 73 00  73 00 38 00 7C 00 1C 00'
+    '3C 00 1A 00 3C 00 30 00  3C 00 30 00 12 00 30 00')
 
 _configs = {'ATSHA204A': _atsha204_config,
             'ATECC508A': _atecc508_config,
@@ -120,30 +123,28 @@ def configure_device(iface='hid', device='ecc', i2c_addr=None, keygen=True, **kw
     response = bytearray(4)
     assert ATCA_SUCCESS == atcab_read_bytes_zone(0, 0, 16, response, 4)
     print('    Current Address: {:02X}'.format(response[0]))
-    if 'ecc' == device and not config_zone_lock:
-        if i2c_addr is None:
-            i2c_addr = 0xB0
-        if 0xC0 != i2c_addr:
-            print('\n    The AT88CK590 Kit does not support changing the I2C addresses of devices.')
-            print('    If you are not using an AT88CK590 kit you may continue without errors')
-            print('    otherwise exit and specify a compatible (0xC0) address.')
-            if 'Y' != input('    Continue (Y/n): '):
-                exit(0)
-            print('    New Address: {:02X}'.format(i2c_addr))
 
     # Program the configuration zone
     print('\nProgram Configuration')
     if not config_zone_lock:
         config = _configs.get(dev_name)
-        if config is not None:
-            print('    Programming {} Configuration'.format(dev_name))
-        else:
-            print('    Unknown Device')
-            raise ValueError('Unknown Device Type: {:02X}'.format(dev_type))
+        if config is None:
+            raise ValueError('Unknown Device Type: {}'.format(dev_type))
 
         # Update with the target I2C Address
         if i2c_addr is not None:
             config[0] = i2c_addr
+
+        print('\n    New Address: {:02X}'.format(config[0]))
+        ck590_i2c_addr = 0xC0 if dev_name != 'ATSHA204A' else 0xC8
+        if config[0] != ck590_i2c_addr:
+            print('    The AT88CK590 Kit does not support changing the I2C addresses of devices.')
+            print('    If you are not using an AT88CK590 kit you may continue without errors')
+            print('    otherwise exit and specify a compatible (0x{:02X}) address.'.format(ck590_i2c_addr))
+            if 'Y' != input('    Continue (Y/n): '):
+                exit(0)
+
+        print('    Programming {} Configuration'.format(dev_name))
 
         # Write configuration
         assert ATCA_SUCCESS == atcab_write_bytes_zone(0, 0, 16, config, len(config))
@@ -167,6 +168,9 @@ def configure_device(iface='hid', device='ecc', i2c_addr=None, keygen=True, **kw
     # Check data zone lock
     print('\nActivating Configuration')
     if not data_zone_lock:
+        # Generate initial ECC key pairs, if applicable
+        key_gen(dev_name)
+
         # Lock the data zone
         assert ATCA_SUCCESS == atcab_lock_data_zone()
         print('    Activated')
@@ -174,30 +178,55 @@ def configure_device(iface='hid', device='ecc', i2c_addr=None, keygen=True, **kw
         print('    Already Active')
 
     # Generate new keys
-    if keygen or not data_zone_lock:
-        if 'ATSHA204A' == dev_name:
-#            print('\nProgramming Keys')
-             print('\nProgram SHA204 Keys manually')
-        else:
-            print('\nGenerating New Keys')
-            pubkey = bytearray(64)
-            assert ATCA_SUCCESS == atcab_genkey(0, pubkey)
-            print('    Key 0 Success:')
-            print(pretty_print_hex(pubkey, indent='    '))
-
-            assert ATCA_SUCCESS == atcab_genkey(2, pubkey)
-            print('    Key 2 Success:')
-            print(pretty_print_hex(pubkey, indent='    '))
-
-            assert ATCA_SUCCESS == atcab_genkey(3, pubkey)
-            print('    Key 3 Success:')
-            print(pretty_print_hex(pubkey, indent='    '))
-
-            assert ATCA_SUCCESS == atcab_genkey(7, pubkey)
-            print('    Key 7 Success:')
-            print(pretty_print_hex(pubkey, indent='    '))
+    if keygen and data_zone_lock:
+        print('\nGenerating New Keys')
+        key_gen(dev_name)
 
     atcab_release()
+
+
+def key_gen(dev_name):
+    """Reviews the configuration of a device and generates new random ECC key pairs for slots that allow it."""
+    ATCA_SUCCESS = 0x00
+
+    if 'ECC' not in dev_name:
+        return  # SHA device, no keys to generate
+
+    # Read the device configuration
+    config_data = bytearray(128)
+    assert ATCA_SUCCESS == atcab_read_config_zone(config_data)
+    if dev_name == 'ATECC508A':
+        config = Atecc508aConfig.from_buffer(config_data)
+    elif dev_name == 'ATECC608A':
+        config = Atecc608aConfig.from_buffer(config_data)
+    else:
+        raise ValueError('Unsupported device {}'.format(dev_name))
+
+    # Review all slot configurations and generate keys where possible
+    for slot in range(16):
+        if not config.KeyConfig[slot].Private:
+            continue  # Not a private key
+        if config.LockValue != 0x55:
+            # Data zone is already locked, additional conditions apply
+            skip_msg = '    Skipping key pair generation in slot {}: '.format(slot)
+            if not config.SlotConfig[slot].WriteConfig & 0x02:
+                print(skip_msg + 'GenKey is disabled')
+                continue
+            if not config.SlotLocked & (1 << slot):
+                print(skip_msg + 'Slot has ben locked')
+                continue
+            if config.KeyConfig[slot].ReqAuth:
+                print(skip_msg + 'Slot requires authorization')
+                continue
+            if config.KeyConfig[slot].PersistentDisable:
+                print(skip_msg + 'Slot requires persistent latch')
+                continue
+
+        print('    Generating key pair in slot {}'.format(slot))
+        public_key = bytearray(64)
+        assert ATCA_SUCCESS == atcab_genkey(slot, public_key)
+        print(convert_ec_pub_to_pem(public_key))
+
 
 if __name__ == '__main__':
     parser = setup_example_runner(__file__)
