@@ -5,7 +5,7 @@ import base64
 import sys
 
 # Maps common name to the specific name used internally
-atca_names_map = {'i2c': 'i2c', 'hid': 'kithid', 'sha': 'sha204', 'ecc': 'eccx08'}
+atca_names_map = {'i2c': 'i2c', 'hid': 'kithid', 'sha': 'sha20x', 'ecc': 'eccx08'}
 
 try:
     FileNotFoundError
