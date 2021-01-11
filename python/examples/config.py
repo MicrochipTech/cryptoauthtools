@@ -198,7 +198,7 @@ def key_gen(dev_name):
     if dev_name == 'ATECC508A':
         config = Atecc508aConfig.from_buffer(config_data)
     elif dev_name == 'ATECC608A':
-        config = Atecc608aConfig.from_buffer(config_data)
+        config = Atecc608Config.from_buffer(config_data)
     else:
         raise ValueError('Unsupported device {}'.format(dev_name))
 
