@@ -154,7 +154,7 @@ def key_attestation(dev_name, attestation_key_slot, key_slot):
     print(pretty_print_hex(verifier_nonce, indent='    '))
 
 
-    print('\nDEVICE: Generate key attestion signature')
+    print('\nDEVICE: Generate key attestation signature')
     print(wrapper.fill(
         'Generate attestation nonce in TempKey from verifier and internal'
         ' device nonces.'
