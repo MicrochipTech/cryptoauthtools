@@ -1,2 +1,2 @@
-cryptoauthlib >= 20190517
+cryptoauthlib >= 20210121
 cryptography >= 2.5

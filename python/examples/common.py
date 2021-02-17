@@ -13,30 +13,6 @@ except NameError:
     FileNotFoundError = IOError
 
 
-def get_device_name(revision):
-    """
-    Returns the device name based on the info byte array values returned by atcab_info
-    """
-    devices = {0x10: 'ATECC108A', 
-               0x50: 'ATECC508A', 
-               0x60: 'ATECC608A',
-               0x00: 'ATSHA204A',
-               0x02: 'ATSHA204A'}
-    return devices.get(revision[2], 'UNKNOWN')
-
-
-def get_device_type_id(name):
-    """
-    Returns the ATCADeviceType value based on the device name
-    """
-    devices = {'ATSHA204A': 0,
-               'ATECC108A': 1, 
-               'ATECC508A': 2,
-               'ATECC608A': 3,
-               'UNKNOWN': 0x20 }
-    return devices.get(name.upper())
-
-
 def setup_example_runner(module):
     """
     Common helper function that sets up the script entry for all examples

@@ -28,9 +28,6 @@ from common import *
 def info(iface='hid', device='ecc', **kwargs):
     ATCA_SUCCESS = 0x00
 
-    # Loading cryptoauthlib(python specific)
-    load_cryptoauthlib()
-
     # Get the target default config
     cfg = eval('cfg_at{}a_{}_default()'.format(atca_names_map.get(device), atca_names_map.get(iface)))
 
