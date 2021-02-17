@@ -242,7 +242,7 @@ def tng_certs():
     # Note that this is a simple cryptographic validation and does not check
     # any of the actual certificate data (validity dates, extensions, names,
     # etc...)
-    print('Validate Signer Certificate:')
+    print('Validate Device Certificate:')
     signer_public_key.verify(
         signature=device_cert.signature,
         data=device_cert.tbs_certificate_bytes,
