@@ -100,7 +100,7 @@ def read_write(iface='hid', device='ecc', **kwargs):
     write_data = bytearray(32)
     read_data = bytearray(32)
 
-    print('\nGeneraing data using RAND command')
+    print('\nGenerating data using RAND command')
     assert atcab_random(write_data) == ATCA_SUCCESS
     print('    Generated data:')
     print(pretty_print_hex(write_data, indent='        '))
@@ -119,14 +119,14 @@ def read_write(iface='hid', device='ecc', **kwargs):
     print(pretty_print_hex(read_data, indent='        '))
 
     # Compare the read data to the written data
-    print('\nVerifing read data matches written data:')
+    print('\nVerifying read data matches written data:')
     print('    Data {}!'.format('Matches' if (read_data == write_data) else 'Does Not Match'))
 
     # Writing IO protection key. This key is used as IO encryption key.
     print('\nWriting IO Protection Secret')
     assert atcab_write_zone(2, write_key_slot, 0, 0, ENC_KEY, 32) == ATCA_SUCCESS
 
-    print('\nGeneraing data using RAND command')
+    print('\nGenerating data using RAND command')
     assert atcab_random(write_data) == ATCA_SUCCESS
     print('    Generated data:')
     print(pretty_print_hex(write_data, indent='        '))
@@ -145,7 +145,7 @@ def read_write(iface='hid', device='ecc', **kwargs):
     print(pretty_print_hex(read_data, indent='        '))
 
     # Compare the read data to the written data
-    print('\nVerifing read data matches written data:')
+    print('\nVerifying read data matches written data:')
     print('    Data {}!'.format('Matches' if (read_data == write_data) else 'Does Not Match'))
 
     # Free the library
