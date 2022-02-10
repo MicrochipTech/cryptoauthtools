@@ -57,7 +57,7 @@ _atecc608_config = bytearray.fromhex(
 
 _configs = {'ATSHA204A': _atsha204_config,
             'ATECC508A': _atecc508_config,
-            'ATECC608A': _atecc608_config }
+            'ATECC608': _atecc608_config }
 
 # Safe input if using python 2
 try: input = raw_input
@@ -197,7 +197,7 @@ def key_gen(dev_name):
     assert ATCA_SUCCESS == atcab_read_config_zone(config_data)
     if dev_name == 'ATECC508A':
         config = Atecc508aConfig.from_buffer(config_data)
-    elif dev_name == 'ATECC608A':
+    elif dev_name == 'ATECC608':
         config = Atecc608Config.from_buffer(config_data)
     else:
         raise ValueError('Unsupported device {}'.format(dev_name))
@@ -236,6 +236,16 @@ if __name__ == '__main__':
 
     if args.i2c is not None:
         args.i2c = int(args.i2c, 16)
+    
+    print('\n--- WARNING - THIS IS FOR DEMONSTRATION NOT FOR ACTUAL CONFIGURATION ---')
+    print('The configuration this script will program is for demonstration purposes only')
+    print('\nYou should use the Trust Platform Development Suite for device configuration')
+    print('\n  https://www.microchip.com/en-us/products/security-ics/trust-platform#Getting%20Started')
+
+
+    print('\nWould you like to continue executing this script?')
+    if 'Y' != input('  Continue (Y/n): '):
+        exit(0)
 
     print('\nConfiguring the device with an example configuration')
     configure_device(args.iface, args.device, args.i2c, args.gen, **parse_interface_params(args.params))
