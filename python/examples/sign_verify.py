@@ -167,7 +167,7 @@ if __name__ == '__main__':
     print(pretty_print_hex(signature, indent='    '))
 
     # Verify the message
-    print("\nVerifing the signature:")
+    print("\nVerifying the signature:")
     if 'device' == args.verifier:
         print('    Verifying with device')
         verified = verify_device(message, signature, public_key)
