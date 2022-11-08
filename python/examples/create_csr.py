@@ -101,8 +101,9 @@ def info(iface='hid', device='ecc', **kwargs):
             setattr(icfg, k, int(v, 16))
 
     # Basic Raspberry Pi I2C check
-    if 'i2c' == iface and check_if_rpi():
-        cfg.cfg.atcai2c.bus = 1
+    if 'bus' not in kwargs:
+        if 'i2c' == iface and check_if_rpi():
+            cfg.cfg.atcai2c.bus = 1
 
     # Initialize the stack
     assert atcab_init(cfg) == ATCA_SUCCESS
