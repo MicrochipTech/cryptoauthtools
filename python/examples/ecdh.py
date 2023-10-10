@@ -26,7 +26,6 @@ from common import *
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
-from cryptography.utils import int_from_bytes
 
 import time
 
@@ -100,8 +99,8 @@ def ECDH(slot, iface='hid', **kwargs):
     # Convert device public key to a cryptography public key object
     device_pub = ec.EllipticCurvePublicNumbers(
         curve=ec.SECP256R1(),
-        x=int_from_bytes(device_pub[0:32], byteorder='big'),
-        y=int_from_bytes(device_pub[32:64], byteorder='big'),
+        x=int.from_bytes(device_pub[0:32], byteorder='big'),
+        y=int.from_bytes(device_pub[32:64], byteorder='big'),
     ).public_key(default_backend())
 
     # Perform the host side ECDH computation

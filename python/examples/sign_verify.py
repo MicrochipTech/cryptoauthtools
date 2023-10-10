@@ -28,7 +28,6 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec, utils
 from cryptography.exceptions import InvalidSignature
-from cryptography.utils import int_from_bytes, int_to_bytes
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
 import time
@@ -99,7 +98,7 @@ def verify_device(message, signature, public_key):
 def sign_host(digest, key):
     signature = key.sign(digest, ec.ECDSA(utils.Prehashed(hashes.SHA256())))
     (r,s) = utils.decode_dss_signature(signature)
-    signature = int_to_bytes(r, 32) + int_to_bytes(s, 32)
+    signature = int.to_bytes(r, 32) + int.to_bytes(s, 32)
     return signature
     
     
@@ -108,14 +107,14 @@ def verify_host(digest, signature, public_key_data):
     Verify a signature using the host software
     """
     try:
-        r = int_from_bytes(signature[0:32], byteorder='big', signed=False)
-        s = int_from_bytes(signature[32:64], byteorder='big', signed=False)
+        r = int.from_bytes(signature[0:32], byteorder='big', signed=False)
+        s = int.from_bytes(signature[32:64], byteorder='big', signed=False)
         sig = utils.encode_dss_signature(r, s)
 
         public_key = ec.EllipticCurvePublicNumbers(
             curve=ec.SECP256R1(),
-            x=int_from_bytes(public_key_data[0:32], byteorder='big'),
-            y=int_from_bytes(public_key_data[32:64], byteorder='big'),
+            x=int.from_bytes(public_key_data[0:32], byteorder='big'),
+            y=int.from_bytes(public_key_data[32:64], byteorder='big'),
         ).public_key(default_backend())
         public_key.verify(sig, digest, ec.ECDSA(utils.Prehashed(hashes.SHA256())))
         return True
