@@ -98,7 +98,7 @@ def verify_device(message, signature, public_key):
 def sign_host(digest, key):
     signature = key.sign(digest, ec.ECDSA(utils.Prehashed(hashes.SHA256())))
     (r,s) = utils.decode_dss_signature(signature)
-    signature = int.to_bytes(r, 32) + int.to_bytes(s, 32)
+    signature = int.to_bytes(r, 32, byteorder='big') + int.to_bytes(s, 32, byteorder='big')
     return signature
     
     
